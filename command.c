@@ -54,6 +54,9 @@ void scommand_push_back(scommand self, char * argument){
 }
 
 void scommand_pop_front(scommand self){
+	assert(self != NULL && !scommand_is_empty(self));
+	
+	self -> args = g_slist_delete_link(self -> args, self -> args);
 }
 
 void scommand_set_redir_in(scommand self, char * filename){

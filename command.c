@@ -26,7 +26,7 @@ scommand scommand_new(void){
 	new_command -> redir_out = NULL;
 
 	//assert(new_command = NULL && scommand_is_empty(new_command) && scommand_get_redir_in(new_command) == NULL && scommand_get_redir_out(new_command) == NULL)
-	
+
 	return new_command;
 }
 
@@ -45,11 +45,12 @@ scommand scommand_destroy(scommand self){
 
 	free(self);
 	self = NULL;
-	
+
 	return self;
 }
 
 void scommand_push_back(scommand self, char * argument){
+    self->args = g_slist_append(self->args, argument);
 }
 
 void scommand_pop_front(scommand self){
@@ -83,7 +84,7 @@ bool scommand_is_empty(const scommand self){
 unsigned int scommand_length(const scommand self){
 	//assert(self != NULL);
 	int length = 0;
-	//length = g_slist_length(list);
+	length = g_slist_length(self->args);
 	return length;
 }
 

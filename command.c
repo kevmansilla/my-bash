@@ -4,7 +4,6 @@
 
 #include "command.h"
 
-
 /********** COMANDO SIMPLE **********/
 
 /* Estructura correspondiente a un comando simple.
@@ -24,52 +23,47 @@ scommand scommand_new(void){
 	new_command -> args = NULL;
 	new_command -> redir_in = NULL;
 	new_command -> redir_out = NULL;
-
-	//assert(new_command = NULL && scommand_is_empty(new_command) && scommand_get_redir_in(new_command) == NULL && scommand_get_redir_out(new_command) == NULL)
-
-	return new_command;
+	assert(new_command = NULL && scommand_is_empty(new_command) && scommand_get_redir_in(new_command) == NULL && scommand_get_redir_out(new_command) == NULL);
+	return (new_command);
 }
 
 scommand scommand_destroy(scommand self){
-	//assert (self != NULL)
-
-	if(self -> redir_in != NULL){
+	assert(self != NULL);
+	if (self -> redir_in != NULL){
 		free(self -> redir_in);
 		self -> redir_in = NULL;
-	}
-
-	if(self -> redir_out != NULL){
+	} else if (self -> redir_out != NULL){
 		free(self -> redir_out);
 		self -> redir_out = NULL;
 	}
-
 	free(self);
 	self = NULL;
-
-	return self;
+	return (self);
 }
 
 void scommand_push_back(scommand self, char * argument){
-    self->args = g_slist_append(self->args, argument);
+    assert(self != NULL && argument != NULL);
+    self -> args = g_slist_append(self -> args, argument);
+    assert(!scommand_is_empty(self));
 }
 
 void scommand_pop_front(scommand self){
 	assert(self != NULL && !scommand_is_empty(self));
-	
 	self -> args = g_slist_delete_link(self -> args, self -> args);
 }
 
 void scommand_set_redir_in(scommand self, char * filename){
-	//assert (self != NULL)
-	if(self -> redir_in == NULL){
+	assert (self != NULL);
+	if (self -> redir_in == NULL){
 		self -> redir_in = filename;
-	}else{
+	} else {
 		free(self -> redir_in);
 		self -> redir_in = filename;
 	}
 }
 
 void scommand_set_redir_out(scommand self, char * filename){
+    assert (self != NULL);
     if (self->redir_out == NULL){
         self->redir_out = filename;
     } else {
@@ -79,27 +73,29 @@ void scommand_set_redir_out(scommand self, char * filename){
 }
 
 bool scommand_is_empty(const scommand self){
-	//assert(self != NULL);
-	bool Bool = true;
-	return Bool;
+	assert(self != NULL);
+	return (g_slist_length(self->args) == 0);
 }
 
 unsigned int scommand_length(const scommand self){
-	//assert(self != NULL);
+	assert(self != NULL);
 	int length = 0;
 	length = g_slist_length(self->args);
-	return length;
+	return (length);
 }
 
 char * scommand_front(const scommand self){
+    //assert(self != NULL && !scommand_is_empty(self));
 	return NULL;
 }
 
 char * scommand_get_redir_in(const scommand self){
+    assert(self != NULL);
 	return (self->redir_in);
 }
 
 char * scommand_get_redir_out(const scommand self){
+    assert(self != NULL);
 	return (self->redir_out);
 }
 
@@ -121,7 +117,6 @@ struct pipeline_s {
     GSList *scmds;
     bool wait;
 };
-
 
 
 pipeline pipeline_new(void){

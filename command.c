@@ -1,4 +1,4 @@
-#include <stdio.h> 
+#include <stdio.h>
 #include <glib.h>
 
 #include "command.h"
@@ -22,7 +22,7 @@ scommand scommand_new(void){
     new_command->args = NULL;
 	new_command->redir_in = NULL;
 	new_command->redir_out = NULL;
-	return new_command;    
+	return new_command;
 }
 
 scommand scommand_destroy(scommand self){
@@ -39,6 +39,12 @@ void scommand_set_redir_in(scommand self, char * filename){
 }
 
 void scommand_set_redir_out(scommand self, char * filename){
+    if (self->redir_out == NULL){
+        self->redir_out = filename;
+    } else {
+        free(self->redir_out);
+        self->redir_out = filename;
+    }
 }
 
 bool scommand_is_empty(const scommand self){
@@ -54,11 +60,11 @@ char * scommand_front(const scommand self){
 }
 
 char * scommand_get_redir_in(const scommand self){
-	return NULL;
+	return (self->redir_in);
 }
 
 char * scommand_get_redir_out(const scommand self){
-	return NULL;
+	return (self->redir_out);
 }
 
 char * scommand_to_string(const scommand self){
@@ -118,5 +124,3 @@ bool pipeline_get_wait(const pipeline self){
 char * pipeline_to_string(const pipeline self){
 	return NULL;
 }
-
-

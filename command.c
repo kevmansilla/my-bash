@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <glib.h>
 #include <assert.h>
+#include <stdbool.h>
 
 #include "command.h"
 
@@ -28,12 +29,12 @@ scommand scommand_new(void){
 
 scommand scommand_destroy(scommand self){
 	assert(self != NULL);
-	// FALTA DESTRUIR SELF->ARGS
+	g_slist_free_full(self->args, free);
 	if (self->redir_in != NULL){
-		// free(self->redir_in); ¿LOS CHAR* HAY QUE LIBERARLOS? ¿PIDEN MEMORIA?
+		free(self->redir_in);
 		self->redir_in = NULL;
 	} else if (self->redir_out != NULL){
-		// free(self->redir_out); ¿LOS CHAR* HAY QUE LIBERARLOS? ¿PIDEN MEMORIA?
+		free(self->redir_out);
 		self->redir_out = NULL;
 	}
 	free(self);
@@ -119,14 +120,23 @@ struct pipeline_s {
 
 
 pipeline pipeline_new(void){
-	return NULL;
+	pipeline new_pipeline = malloc(sizeof(struct pipeline_s));
+	new_pipeline -> scmds = NULL;
+	new_pipeline -> wait = true;
+	assert(new_pipeline != NULL && pipeline_is_empty(new_pipeline) && pipeline_get_wait(new_pipeline));
+	return new_pipeline;
 }
 
 pipeline pipeline_destroy(pipeline self){
+	assert(self != NULL);
+
 	return NULL;
 }
 
 void pipeline_push_back(pipeline self, scommand sc){
+	assert(self != NULL && sc != NULL);
+	self -> scmds = g_slist_append(self -> scmds, sc);
+	assert(!pipeline_is_empty(self));
 }
 
 void pipeline_pop_front(pipeline self){
@@ -136,7 +146,8 @@ void pipeline_set_wait(pipeline self, const bool w){
 }
 
 bool pipeline_is_empty(const pipeline self){
-	return true;
+	assert(self != NULL);
+	return (g_slist_length(self->scmds) == 0);
 }
 
 unsigned int pipeline_length(const pipeline self){

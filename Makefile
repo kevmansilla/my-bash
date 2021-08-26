@@ -34,6 +34,9 @@ clean:
 #memtest: $(OBJECTS)
 #	make -C tests memtest
 
+valgrind: $(TARGET)
+	valgrind --show-reachable=yes --leak-check=full ./$(TARGET) 
+
 .depend: $(SOURCES)
 	$(CC) $(CPPFLAGS) -MM $^ > $@
 

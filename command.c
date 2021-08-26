@@ -29,6 +29,7 @@ scommand scommand_new(void){
 
 scommand scommand_destroy(scommand self){
 	assert(self != NULL);
+	// FALTA DESTRUIR SELF->ARGS
 	if (self->redir_in != NULL){
 		free(self->redir_in);
 		self->redir_in = NULL;
@@ -85,7 +86,9 @@ unsigned int scommand_length(const scommand self){
 }
 
 char * scommand_front(const scommand self){
-    //assert(self != NULL && !scommand_is_empty(self));
+    assert(self != NULL && !scommand_is_empty(self));
+	char *front = (char *)g_slist_nth_data(self->args, 0);
+	assert(front != NULL);
 	return NULL;
 }
 

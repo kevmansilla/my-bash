@@ -18,7 +18,6 @@ struct scommand_s {
 
 
 scommand scommand_new(void){
-	// Asignamos memoria.
     scommand new_command = malloc(sizeof(struct scommand_s));
 	new_command->args = NULL;
 	new_command->redir_in = NULL;
@@ -31,10 +30,10 @@ scommand scommand_destroy(scommand self){
 	assert(self != NULL);
 	// FALTA DESTRUIR SELF->ARGS
 	if (self->redir_in != NULL){
-		free(self->redir_in);
+		// free(self->redir_in); ¿LOS CHAR* HAY QUE LIBERARLOS? ¿PIDEN MEMORIA?
 		self->redir_in = NULL;
 	} else if (self->redir_out != NULL){
-		free(self->redir_out);
+		// free(self->redir_out); ¿LOS CHAR* HAY QUE LIBERARLOS? ¿PIDEN MEMORIA?
 		self->redir_out = NULL;
 	}
 	free(self);
@@ -58,7 +57,7 @@ void scommand_set_redir_in(scommand self, char * filename){
 	if (self->redir_in == NULL){
 		self->redir_in = filename;
 	} else {
-		free(self->redir_in);
+		// free(self->redir_in); ¿LOS CHAR* HAY QUE LIBERARLOS? ¿PIDEN MEMORIA?
 		self->redir_in = filename;
 	}
 }
@@ -68,7 +67,7 @@ void scommand_set_redir_out(scommand self, char * filename){
     if (self->redir_out == NULL){
         self->redir_out = filename;
     } else {
-        free(self->redir_out);
+        // free(self->redir_out); ¿LOS CHAR* HAY QUE LIBERARLOS? ¿PIDEN MEMORIA?
         self->redir_out = filename;
     }
 }
@@ -80,8 +79,7 @@ bool scommand_is_empty(const scommand self){
 
 unsigned int scommand_length(const scommand self){
 	assert(self != NULL);
-	int length = 0;
-	length = g_slist_length(self->args);
+	unsigned int length = g_slist_length(self->args);
 	return (length);
 }
 
@@ -105,8 +103,6 @@ char * scommand_get_redir_out(const scommand self){
 char * scommand_to_string(const scommand self){
 	return NULL;
 }
-
-
 
 
 

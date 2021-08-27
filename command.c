@@ -70,7 +70,7 @@ void scommand_set_redir_out(scommand self, char * filename){
 	if (self->redir_out == NULL){
         self->redir_out = filename;
     } else {
-        free(self->redir_out); 
+        free(self->redir_out);
         self->redir_out = filename;
     }
 }
@@ -150,10 +150,13 @@ void pipeline_push_back(pipeline self, scommand sc){
 }
 
 void pipeline_pop_front(pipeline self){
-	
+    assert(self != NULL && !pipeline_is_empty(self));
+	self->scmds = g_slist_delete_link(self->scmds, self->scmds);
 }
 
 void pipeline_set_wait(pipeline self, const bool w){
+    assert(self);
+    self->scmds = w;
 }
 
 bool pipeline_is_empty(const pipeline self){
@@ -163,15 +166,19 @@ bool pipeline_is_empty(const pipeline self){
 
 unsigned int pipeline_length(const pipeline self){
 	assert(self != NULL);
-	return {g_slist_length(self->scmds)};
+	return g_slist_length(self->scmds);
 }
 
 scommand pipeline_front(const pipeline self){
-	return NULL;
+    assert(self != NULL && !pipeline_is_empty(self));
+	char *front = (char *)g_slist_nth_data(self->scmds, 0);
+	assert(front != NULL);
+
+	return front;
 }
 
 bool pipeline_get_wait(const pipeline self){
-	return true;
+	return (self->wait);
 }
 
 char * pipeline_to_string(const pipeline self){

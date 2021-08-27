@@ -23,38 +23,49 @@ scommand scommand_new(void){
 	new_command->args = NULL;
 	new_command->redir_in = NULL;
 	new_command->redir_out = NULL;
+
 	assert(new_command != NULL && scommand_is_empty(new_command) && scommand_get_redir_in(new_command) == NULL && scommand_get_redir_out(new_command) == NULL);
+
 	return (new_command);
 }
 
 scommand scommand_destroy(scommand self){
 	assert(self != NULL);
-	g_slist_free_full(self->args, free);
+	g_slist_free_full(self->args, free); // Libera la memoria utilizada por GSList.
+
 	if (self->redir_in != NULL){
 		free(self->redir_in);
 		self->redir_in = NULL;
-	} else if (self->redir_out != NULL){
+	}
+	
+	if (self->redir_out != NULL){
 		free(self->redir_out);
 		self->redir_out = NULL;
 	}
+
 	free(self);
 	self = NULL;
-	return (self);
+
+	return self;
 }
 
 void scommand_push_back(scommand self, char * argument){
     assert(self != NULL && argument != NULL);
-    self->args = g_slist_append(self->args, argument);
+
+    self->args = g_slist_append(self->args, argument); // Añade un nuevo elemento al final de la lista.
+
     assert(!scommand_is_empty(self));
 }
 
 void scommand_pop_front(scommand self){
 	assert(self != NULL && !scommand_is_empty(self));
-	self->args = g_slist_delete_link(self->args, self->args);
+
+	self->args = g_slist_delete_link(self->args, self->args); // Elimina el nodo (args) de la lista y lo libera,
 }
 
 void scommand_set_redir_in(scommand self, char * filename){
 	assert (self != NULL);
+	
 	if (self->redir_in == NULL){
 		self->redir_in = filename;
 	} else {
@@ -65,7 +76,8 @@ void scommand_set_redir_in(scommand self, char * filename){
 
 void scommand_set_redir_out(scommand self, char * filename){
     assert (self != NULL);
-    if (self->redir_out == NULL){
+    
+	if (self->redir_out == NULL){
         self->redir_out = filename;
     } else {
         // free(self->redir_out); ¿LOS CHAR* HAY QUE LIBERARLOS? ¿PIDEN MEMORIA?
@@ -80,14 +92,15 @@ bool scommand_is_empty(const scommand self){
 
 unsigned int scommand_length(const scommand self){
 	assert(self != NULL);
-	unsigned int length = g_slist_length(self->args);
-	return (length);
+	return (g_slist_length(self->args));
 }
 
 char * scommand_front(const scommand self){
     assert(self != NULL && !scommand_is_empty(self));
+
 	char *front = (char *)g_slist_nth_data(self->args, 0);
 	assert(front != NULL);
+
 	return NULL;
 }
 
@@ -123,14 +136,23 @@ pipeline pipeline_new(void){
 	pipeline new_pipeline = malloc(sizeof(struct pipeline_s));
 	new_pipeline -> scmds = NULL;
 	new_pipeline -> wait = true;
+
 	assert(new_pipeline != NULL && pipeline_is_empty(new_pipeline) && pipeline_get_wait(new_pipeline));
+
 	return new_pipeline;
 }
 
 pipeline pipeline_destroy(pipeline self){
 	assert(self != NULL);
 
-	return NULL;
+	while(self->scmds != NULL){
+		pipeline_pop_front(self->scmds);
+	}
+
+	free(self)
+	self = NULL;
+
+	return self;
 }
 
 void pipeline_push_back(pipeline self, scommand sc){
@@ -140,6 +162,7 @@ void pipeline_push_back(pipeline self, scommand sc){
 }
 
 void pipeline_pop_front(pipeline self){
+	
 }
 
 void pipeline_set_wait(pipeline self, const bool w){
@@ -151,7 +174,8 @@ bool pipeline_is_empty(const pipeline self){
 }
 
 unsigned int pipeline_length(const pipeline self){
-	return 0;
+	assert(self != NULL);
+	return {g_slist_length(self->scmds)};
 }
 
 scommand pipeline_front(const pipeline self){

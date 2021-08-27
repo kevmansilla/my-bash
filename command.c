@@ -102,8 +102,42 @@ char * scommand_get_redir_out(const scommand self){
 	return (self->redir_out);
 }
 
-char * scommand_to_string(const scommand self){
-	return NULL;
+char * scommand_to_string(scommand comando){
+
+    unsigned int length_command = 0;
+    // Primero contamos la cantidad de caracteres de todo el comando:
+    for (unsigned int i = 0; i < g_slist_length(comando->args); i++){
+        char *current_scommand = g_slist_nth_data(comando->args, i);
+        length_command += strlen(current_scommand) + 1; 
+    }
+    if(comando->redir_out != NULL){
+        // Hay que sumar a length 2 por "> " + el len(redir_out) + 1 espacio:
+        length_command += strlen(comando->redir_out) + 3;
+    }
+    if(comando->redir_in != NULL){
+        // Hay que sumar a length 2 por "< " + el len(redir_in) + el caracter nulo \0:
+        length_command += strlen(comando->redir_in) + 3;
+    }
+
+    // Asignamos memoria al nuevo string:
+    char *res_command = (char *)calloc(length_command, sizeof(char));
+
+    // Concatenamos los strings: char *strcat(char *dest, const char *src)
+    for (unsigned int i = 0; i < g_slist_length(comando->args); i++){
+        char *current_scommand = g_slist_nth_data(comando->args, i);
+        strcat(res_command, current_scommand);
+        strcat(res_command, " ");
+    }
+    if(comando->redir_out != NULL){
+        strcat(res_command, "> ");
+        strcat(res_command, comando->redir_out);
+    }
+    if(comando->redir_in != NULL){
+        strcat(res_command, " < ");
+        strcat(res_command, comando->redir_in);
+    }
+
+    return res_command;
 }
 
 

@@ -134,10 +134,10 @@ pipeline pipeline_destroy(pipeline self){
 	assert(self != NULL);
 
 	while(self->scmds != NULL){
-		pipeline_pop_front(self->scmds);
+		pipeline_pop_front(self);
 	}
 
-	free(self)
+	free(self);
 	self = NULL;
 
 	return self;
@@ -156,7 +156,7 @@ void pipeline_pop_front(pipeline self){
 
 void pipeline_set_wait(pipeline self, const bool w){
     assert(self);
-    self->scmds = w;
+    self->wait = w;
 }
 
 bool pipeline_is_empty(const pipeline self){
@@ -171,7 +171,7 @@ unsigned int pipeline_length(const pipeline self){
 
 scommand pipeline_front(const pipeline self){
     assert(self != NULL && !pipeline_is_empty(self));
-	char *front = (char *)g_slist_nth_data(self->scmds, 0);
+	scommand front = g_slist_nth_data(self->scmds, 0);
 	assert(front != NULL);
 
 	return front;

@@ -4,6 +4,7 @@
 #include <stdbool.h>
 
 #include "command.h"
+#include "strextra.h"
 
 /********** COMANDO SIMPLE **********/
 
@@ -106,39 +107,28 @@ char * scommand_get_redir_out(const scommand self){
 
 char * scommand_to_string(scommand comando){
     assert(comando != NULL);
-    unsigned int length_command = 0u;
-    // Primero contamos la cantidad de caracteres de todo el comando:
+
+    // Inicializamos un string con memoria:
+    char *res_command = strdup("");
+
+    // Concatenamos los strings de cada comando:
     for (unsigned int i = 0u; i < g_slist_length(comando->args); ++i){
         char *current_scommand = g_slist_nth_data(comando->args, i);
-        length_command += strlen(current_scommand) + 1u;
+        res_command = strmerge_and_free(res_command, current_scommand);
+        res_command = strmerge_and_free(res_command, " ");
     }
+
+    // Incluimos los redirecciones si correspode:
     if(comando->redir_out != NULL){
-        // Hay que sumar a length 2 por "> " + el len(redir_out) + 1 espacio:
-        length_command += strlen(comando->redir_out) + 3u;
+        res_command = strmerge_and_free(res_command, "> ");
+        res_command = strmerge_and_free(res_command, comando->redir_out);
     }
     if(comando->redir_in != NULL){
-        // Hay que sumar a length 3 por " < " + el len(redir_in):
-        length_command += strlen(comando->redir_in) + 3u;
+        res_command = strmerge_and_free(res_command, " < ");
+        res_command = strmerge_and_free(res_command, comando->redir_in);
+        res_command = strmerge_and_free(res_command, " ");
     }
-    // Sumamos 1 por el comando nulo \0:
-    length_command += 1u;
-    // Asignamos memoria al nuevo string:
-    char *res_command = (char *)calloc(length_command, sizeof(char));
-    // Concatenamos los strings: char *strcat(char *dest, const char *src)
-    for (unsigned int i = 0u; i < g_slist_length(comando->args); ++i){
-        char *current_scommand = g_slist_nth_data(comando->args, i);
-        strcat(res_command, current_scommand);
-        strcat(res_command, " ");
-    }
-    if(comando->redir_out != NULL){
-        strcat(res_command, "> ");
-        strcat(res_command, comando->redir_out);
-    }
-    if(comando->redir_in != NULL){
-        strcat(res_command, " < ");
-        strcat(res_command, comando->redir_in);
-        strcat(res_command, " ");
-    }
+
     return (res_command);
 }
 
@@ -217,25 +207,24 @@ bool pipeline_get_wait(const pipeline self){
 
 char * pipeline_to_string(const pipeline self){
     assert(self != NULL);
-    unsigned int length_command = 0u;
-    for (unsigned int i = 0u; i < g_slist_length(self->scmds); ++i){
-        scommand current_commands = g_slist_nth_data(self->scmds, i);
-        char *simple_command = scommand_to_string(current_commands);
-        length_command += strlen(simple_command) + 3u;
-        free(simple_command);
-    }
-    char *res_pipeline = (char *)calloc(length_command, sizeof(char));
+
+    // Inicializamos un string con memoria:
+    char *res_pipeline = strdup("");
+
+    // Concatenamos los scommands con "| " ó "&" (según corresponda):
     for (unsigned int i = 0u; i < g_slist_length(self->scmds); ++i){
         scommand current_scommand = g_slist_nth_data(self->scmds, i);
         char *simple_command = scommand_to_string(current_scommand);
-        strcat(res_pipeline, simple_command);
+        res_pipeline = strmerge_and_free(res_pipeline, simple_command);
         if(i != g_slist_length(self->scmds) - 1u){
-            strcat(res_pipeline, "| ");
+            res_pipeline = strmerge_and_free(res_pipeline, "| ");
         }
         free(simple_command);
     }
+    // Concatenamos "&" si corresponde:
     if(!self->wait){
-        strcat(res_pipeline, "&");
+        res_pipeline = strmerge_and_free(res_pipeline, "&");
     }
+    
     return (res_pipeline);
 }

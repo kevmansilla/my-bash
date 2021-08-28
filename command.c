@@ -115,9 +115,11 @@ char * scommand_to_string(scommand comando){
         length_command += strlen(comando->redir_out) + 3;
     }
     if(comando->redir_in != NULL){
-        // Hay que sumar a length 2 por "< " + el len(redir_in) + el caracter nulo \0:
+        // Hay que sumar a length 3 por " < " + el len(redir_in):
         length_command += strlen(comando->redir_in) + 3;
     }
+	// Sumamos 1 por el comando nulo \0:
+	length_command += 1;
 
     // Asignamos memoria al nuevo string:
     char *res_command = (char *)calloc(length_command, sizeof(char));
@@ -135,6 +137,7 @@ char * scommand_to_string(scommand comando){
     if(comando->redir_in != NULL){
         strcat(res_command, " < ");
         strcat(res_command, comando->redir_in);
+		strcat(res_command, " ");
     }
 
     return res_command;
@@ -179,7 +182,7 @@ pipeline pipeline_destroy(pipeline self){
 
 void pipeline_push_back(pipeline self, scommand sc){
 	assert(self != NULL && sc != NULL);
-	self -> scmds = g_slist_append(self -> scmds, sc);
+	self->scmds = g_slist_append(self->scmds, sc);
 	assert(!pipeline_is_empty(self));
 }
 
@@ -216,50 +219,39 @@ bool pipeline_get_wait(const pipeline self){
 }
 
 char * pipeline_to_string(const pipeline self){
-	// ls -l | grep -i glibc | grep -i glibc & -> 39
-	// ls -l | grep -i glibc & -> 23
-	// ls -l -> 6
-	// grep -i glibc -> 14
-
-	// ls -l ej1.c > out.txt < in.txt
-
 	assert(self != NULL);
-	
-	unsigned int length_command = 0;
 
-	char *current_scommand = NULL;
+    unsigned int length_command = 0;
     
-	// Primero contamos la cantidad de caracteres de todo el self:
     for (unsigned int i = 0; i < g_slist_length(self->scmds); i++){
-        current_scommand = g_slist_nth_data(self->scmds, i);
-        length_command += strlen(current_scommand) + 1;
-    }
-
-	// Si wait es true
-	if (self->wait){
-		length_command += strlen(current_scommand) + 1;
+		scommand current_commands = g_slist_nth_data(self->scmds, i);
+		char *simple_command = scommand_to_string(current_commands);
+		length_command += strlen(simple_command) + 2;
+		free(simple_command);
 	}
 
-	// Suma el | + el espacio entre | y el comando a la derecha.
-	length_command += (g_slist_length(self->scmds) - 1) * 2;
-
-    // Asignamos memoria al nuevo string:
-    char *res_command = (char *)calloc(length_command, sizeof(char));
-
-    // Concatenamos los strings: char *strcat(char *dest, const char *src)
-    for (unsigned int i = 0; i < g_slist_length(self->scmds); i++){
-		char *current_scommand = g_slist_nth_data(self->scmds, i);
-		strcat(res_command, current_scommand);
-        strcat(res_command, " ");
-		
-		if (g_slist_length(self->scmds) > 1 && i < g_slist_length(self->scmds) - 1){
-			strcat(res_command, "| ");
+	char *res_pipeline = (char *)calloc(length_command, sizeof(char));
+	for (unsigned int i = 0; i < g_slist_length(self->scmds); i++){
+		scommand current_scommand = g_slist_nth_data(self->scmds, i);
+		char *simple_command = scommand_to_string(current_scommand);
+		strcat(res_pipeline, simple_command);
+		if(i != g_slist_length(self->scmds) - 1){
+			strcat(res_pipeline, "| ");
 		}
-    }
+		free(simple_command);
+	}
+	if(self->wait){
+		strcat(res_pipeline, "&");
+	}
+	return res_pipeline;
+}
 
-    if(self->wait){
-        strcat(res_command, "&");
-    }
 
-    return res_command;
+static void print_list(scommand comando){
+    GSList *temp = comando->args;
+    unsigned int i = 0;
+    while(temp != NULL){
+        printf("[%u] %s\n", i++ ,(char *)temp->data);
+        temp = temp->next;
+    }
 }

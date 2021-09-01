@@ -9,15 +9,19 @@
 
 
 int main(int argc, char *argv[]){
-    Parser parser;
-    pipeline pipe;
-    bool quit = false;
+    scommand new = scommand_new();
+    scommand_push_back(new, "ls -l");
 
-    parser = parser_new(stdin);
+    pipeline new_p = pipeline_new();
+    pipeline_push_back(new_p, new);
+
+    printf("%d\n", builtin_is_cd(new_p));
+
+    /* parser = parser_new(stdin);
     while (!quit) {
         show_prompt();
         pipe = parse_pipeline(parser);
-        quit = parser_at_eof(parser); /* Chequeo si hay que salir luego de ejecutar el comando */
+        quit = parser_at_eof(parser); 
 
         if (pipe != NULL) {
             quit = quit || builtin_is_exit(pipe);
@@ -28,6 +32,6 @@ int main(int argc, char *argv[]){
         }
     }
     parser_destroy(parser);
-    parser = NULL;
+    parser = NULL; */
     return 0;
 }

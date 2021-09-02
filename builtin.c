@@ -55,6 +55,6 @@ void builtin_exec(pipeline pipe){
         }
     }
     else if(builtin_is_exit(pipe)){
-        exit(0);
+        close(STDIN_FILENO);
     }
 }

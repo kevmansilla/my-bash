@@ -24,13 +24,12 @@ static void execute_simple_scommand(pipeline apipe){
             scommand_pop_front(pipe_front);             // Quito para poder copiar la otra.
         }
         if(execvp(cmd[0], cmd) == -1){
-            /* 
+            /*
                 Se crea un nuevo proceso y se ejecuta el código del programa
-                dado (-1 en caso de fallo), una vez que el proceso hijo es creado, ejecuta un código diferente 
+                dado (-1 en caso de fallo), una vez que el proceso hijo es creado, ejecuta un código diferente
                 y el proceso padre espera hasta que el hijo salga.
             */
             fprintf(stderr, "Comando inexistente");
-            exit(1);
         }
         //liberar memoria
         for(unsigned int i = 0u; i < length_command; ++i){
@@ -42,9 +41,6 @@ static void execute_simple_scommand(pipeline apipe){
     }
 }
 
-
-
-
 void execute_pipeline(pipeline apipe){
     assert(apipe != NULL);
     bool pipe_wait = pipeline_get_wait(apipe); // Tomo el valor de wait.
@@ -53,14 +49,11 @@ void execute_pipeline(pipeline apipe){
     if(pipeline_is_empty(apipe)){
         return;
     }
-    
     /* Si es un comando interno */
     if(builtin_is_internal(apipe)){
         builtin_exec(apipe);
         return;
     }
-
-
     /* Si solamente es un comando, no hace falta usar pipe */
     if(pipeline_length(apipe) == 1){
         pid_t pid = fork();
@@ -94,20 +87,15 @@ void execute_pipeline(pipeline apipe){
                 }
             }
             execute_simple_scommand(apipe);
-        
         }else if(pid == -1){ /* Error con fork */
             fprintf(stderr, "Error con el fork");
-            exit(1);
-
         }else{ /* Proceso padre */
             if(pipe_wait){
                 waitpid(pid, NULL, 0);
             }
         }
-
         return;
     }
-
     /* Si hay mas de un comando, utilizamos pipe */
     if(pipeline_length(apipe) > 1){
         for(unsigned int i = 0u;  i < pipeline_length(apipe); ++i){
@@ -128,14 +116,13 @@ void execute_pipeline(pipeline apipe){
                     dup2(out, STDOUT_FILENO);
                     close(out);
                 }
-                execute_simple_command(apipe);
+                execute_simple_scommand(apipe);
 
             }else if(pid == -1){ /* Error con fork */
                 fprintf(stderr, "Error con el fork");
-                exit(1);
 
             }else{ /* Proceso padre */
-                
+
             }
         }
     }

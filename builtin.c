@@ -44,12 +44,17 @@ void builtin_exec(pipeline pipe){
     assert(builtin_is_internal(pipe));
 
     scommand command = pipeline_front(pipe);
-
     if(builtin_is_cd(pipe)){
-        scommand_pop_front(command); // Se quita el comando, solo toma los argumentos
-        char *temp = scommand_front(command);
-        chdir(temp);
-    }else if(builtin_is_exit(pipe)){
+        scommand_pop_front(command);
+        unsigned int length_command = scommand_length(command);
+        if(length_command != 1){
+            fprintf(stderr, "Comandos invalidos \n");
+        }else{
+            char *temp = scommand_front(command);
+            chdir(temp);
+        }
+    }
+    else if(builtin_is_exit(pipe)){
         exit(0);
     }
 }

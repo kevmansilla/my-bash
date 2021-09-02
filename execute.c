@@ -24,13 +24,17 @@ static void simple_ex_command(pipeline apipe){
             cmd[i] = strdup(tmp);      //copio
             scommand_pop_front(pipe_front); // quito para poder copiar la otra
         }
-        // if (execvp(cmd[0], cmd) == -1){ //rear un nuevo proceso y ejecutar el código del programa
-        //     //dado (-1 en caso de fallo), una vez que el proceso hijo es creado, ejecuta un código
-        //     //diferente y el proceso padre espera hasta que el hijo salga
-        //     printf("Comando inexistente\n");
-        //     exit(EXIT_FAILURE);
-        // } DUDA
-        liberar memoria
+        if (execvp(cmd[0], cmd) == -1){ //rear un nuevo proceso y ejecutar el código del programa
+            //dado (-1 en caso de fallo), una vez que el proceso hijo es creado, ejecuta un código
+            //diferente y el proceso padre espera hasta que el hijo salga
+            fprintf(stderr, "Comando inexistente");
+            exit(1);
+        }
+        //liberar memoria
+        for (unsigned int i = 0u; i < length_command; ++i){
+            free(cmd[i]);
+            cmd[i] = NULL;
+        }
         free(cmd);
         cmd = NULL;
     }
@@ -83,7 +87,7 @@ void execute_pipeline(pipeline apipe){
             }
             simple_ex_command(apipe);
         }else if(pid == -1){
-            printf("Error con el fork");
+            fprintf(stderr, "Error con el fork");
             exit(1);
         }else{ /* El proceso es padre */
             waitpid(pid, NULL, 0);

@@ -1,4 +1,3 @@
-#include "builtin.h"
 #include <unistd.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -7,47 +6,50 @@
 #include <assert.h>
 #include <unistd.h>
 
+#include "builtin.h"
+#include "tests/syscall_mock.h"
+
 bool builtin_is_exit(pipeline pipe){
-	assert(pipe != NULL);
-	bool command_compare;
+    assert(pipe != NULL);
+    bool command_compare;
 
-	scommand pipe_front = pipeline_front(pipe);
-	char *command_front = scommand_front(pipe_front);
-	//Comparo si el comando es un exit.
-	bool compare_value = strcmp(command_front, "exit");
-	command_compare = (compare_value == 0);
+    scommand pipe_front = pipeline_front(pipe);
+    char *command_front = scommand_front(pipe_front);
+    //Comparo si el comando es un exit.
+    bool compare_value = strcmp(command_front, "exit");
+    command_compare = (compare_value == 0);
 
-	return command_compare;
+    return (command_compare);
 }
 
 bool builtin_is_cd(pipeline pipe){
-	assert(pipe != NULL);
-	bool command_compare;
+    assert(pipe != NULL);
+    bool command_compare;
 
-	scommand pipe_front = pipeline_front(pipe);
-	char *command_front = scommand_front(pipe_front);
-	//Comparo si el comando es un cd.
-	bool compare_value = strcmp(command_front, "cd");
-	command_compare = (compare_value == 0);
-	
-	return command_compare;
+    scommand pipe_front = pipeline_front(pipe);
+    char *command_front = scommand_front(pipe_front);
+    //Comparo si el comando es un cd.
+    bool compare_value = strcmp(command_front, "cd");
+    command_compare = (compare_value == 0);
+
+    return (command_compare);
 }
 
 bool builtin_is_internal(pipeline pipe){
-	assert(pipe != NULL);
-	return builtin_is_exit(pipe) || builtin_is_cd(pipe);
+    assert(pipe != NULL);
+    return builtin_is_exit(pipe) || builtin_is_cd(pipe);
 }
 
 void builtin_exec(pipeline pipe){
-	assert(builtin_is_internal(pipe));
+    assert(builtin_is_internal(pipe));
 
-	scommand command = pipeline_front(pipe);
+    scommand command = pipeline_front(pipe);
 
-	if(builtin_is_cd(pipe)){
-		scommand_pop_front(command); // Se quita el comando, solo toma los argumentos
-		char *temp = scommand_front(command);
-		chdir(temp);
-	}else if(builtin_is_exit(pipe)){
-		exit(0);
-	}
+    if(builtin_is_cd(pipe)){
+        scommand_pop_front(command); // Se quita el comando, solo toma los argumentos
+        char *temp = scommand_front(command);
+        chdir(temp);
+    }else if(builtin_is_exit(pipe)){
+        exit(0);
+    }
 }

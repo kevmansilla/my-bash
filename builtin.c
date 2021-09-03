@@ -46,12 +46,12 @@ void builtin_exec(pipeline pipe){
     scommand command = pipeline_front(pipe);
     if(builtin_is_cd(pipe)){
         scommand_pop_front(command);
-        unsigned int length_command = scommand_length(command);
-        if(length_command != 1){
-            fprintf(stderr, "Comandos invalidos \n");
-        }else{
+        if(scommand_length(command) > 0){
             char *temp = scommand_front(command);
             chdir(temp);
+        } 
+        else{
+            fprintf(stderr, "Faltan argumentos \n");
         }
     }
     else if(builtin_is_exit(pipe)){

@@ -29,7 +29,7 @@ static void execute_simple_scommand(pipeline apipe){
                 dado (-1 en caso de fallo), una vez que el proceso hijo es creado, ejecuta un código diferente
                 y el proceso padre espera hasta que el hijo salga.
             */
-            fprintf(stderr, "Comando inexistente");
+            fprintf(stderr, "Comando inexistente \n");
         }
         //liberar memoria
         for(unsigned int i = 0u; i < length_command; ++i){

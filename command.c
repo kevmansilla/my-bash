@@ -30,7 +30,7 @@ scommand scommand_new(void){
 
 scommand scommand_destroy(scommand self){
     assert(self != NULL);
-    g_slist_free(self->args);
+    g_slist_free_full(self->args, free);
     if (self->redir_in != NULL){
         free(self->redir_in);
         self->redir_in = NULL;
@@ -52,6 +52,8 @@ void scommand_push_back(scommand self, char * argument){
 
 void scommand_pop_front(scommand self){
     assert(self != NULL && !scommand_is_empty(self));
+    char *front = g_slist_nth_data(self->args, 0);
+    free(front);
     self->args = g_slist_delete_link(self->args, self->args);
 }
 

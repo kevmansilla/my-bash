@@ -13,31 +13,23 @@
 static void config_redir(pipeline apipe){
     if(apipe != NULL){
         scommand pipe_front = pipeline_front(apipe);
-        char *redir_in = scommand_get_redir_in(pipe_front); // <
+        char *redir_in = scommand_get_redir_in(pipe_front);
         if(redir_in){
-            //int open(const char *pathname, int flags, mode_t mode);
-            //O_RDONLY la persona que llama tiene permiso de lectura sobre el objeto
             int in = open(redir_in, O_RDONLY, S_IRWXU);
-            //S_IRUSR: Leer bit
-            //S_IWUSR: escribit bit
-            //S_IXUSR: ejecutar bit
-            dup2(in, STDIN_FILENO); //duplica descriptores de archivos y apunta al archivo (in.txt) (dump no apunta)
+            dup2(in, STDIN_FILENO);
             close(in);
         }
-        char *redir_out = scommand_get_redir_out(pipe_front); // > mando a un archivo
+        char *redir_out = scommand_get_redir_out(pipe_front);
         if(redir_out){
             int out = open(redir_out,  O_CREAT | O_WRONLY | O_TRUNC , S_IRWXU);
-            //O_CREAT: sino existe se crea
-            //O_WRONLY: para escritura
-            //S_IRWXU: permisos de lectura, escritura y ejecucion
-            //S_IRWXU: el usuario (el propietario del fichero) tiene permisos de lectura, escritura y ejecución
             dup2(out, STDOUT_FILENO);
             close(out);
         }
     }
 }
 
-static void execute_simple_scommand(pipeline apipe){
+static int execute_simple_scommand(pipeline apipe){
+    int status_execute = 0;
     if(builtin_is_internal(apipe)){
         builtin_exec(apipe);
     }
@@ -52,6 +44,7 @@ static void execute_simple_scommand(pipeline apipe){
         }
         if(execvp(cmd[0], cmd) == -1){
             fprintf(stderr, "Comando inexistente\n");
+            status_execute = -1;
         }
         for(unsigned int i = 0u; i < length_command; ++i){
             free(cmd[i]);
@@ -60,6 +53,7 @@ static void execute_simple_scommand(pipeline apipe){
         free(cmd);
         cmd = NULL;
     }
+    return status_execute;
 }
 
 void execute_pipeline(pipeline apipe){
@@ -77,7 +71,9 @@ void execute_pipeline(pipeline apipe){
         pid_t pid = fork();
         if(pid == 0){ 
             config_redir(apipe);
-            execute_simple_scommand(apipe);
+            if(execute_simple_scommand(apipe) == -1){
+                exit(1);
+            }
         }
         else if(pid == -1){
             fprintf(stderr, "Error con el fork\n");
@@ -90,16 +86,17 @@ void execute_pipeline(pipeline apipe){
         return;
     } 
     else {
-        int **vec_pipe = calloc(1, sizeof(int*));
-        for(unsigned int i = 0u; i < 1; ++i){
+        unsigned int len_pipeline = pipeline_length(apipe);
+        int **vec_pipe = calloc(len_pipeline - 1, sizeof(int*));
+        for(unsigned int i = 0u; i < len_pipeline - 1; ++i){
             vec_pipe[i] = calloc(2, sizeof(int));
             pipe(vec_pipe[i]); 
         }
-        unsigned int *copy_fork = calloc(2, sizeof(int));
-        for(unsigned int i = 0u; i < 2; ++i){
+        unsigned int *copy_fork = calloc(len_pipeline, sizeof(int));
+        for(unsigned int i = 0u; i < len_pipeline; ++i){
             pid_t pid = fork();
             if (pid == 0){
-                if(i < 1){ 
+                if(i < len_pipeline -1){ 
                     close(vec_pipe[i][0]); 
                     dup2(vec_pipe[i][1],STDOUT_FILENO);
                     close(vec_pipe[i][1]);
@@ -111,7 +108,9 @@ void execute_pipeline(pipeline apipe){
                 }
 
                 config_redir(apipe);
-                execute_simple_scommand(apipe);
+                if(execute_simple_scommand(apipe) == -1){
+                    exit(1);
+                }
             }
             else if(pid == -1){
                 fprintf(stderr, "Error con el fork\n");
@@ -120,7 +119,7 @@ void execute_pipeline(pipeline apipe){
                 if (i > 0){
                     close(vec_pipe[i-1][0]);
                 }
-                if(i < 1){
+                if(i < len_pipeline -1){
                     close(vec_pipe[i][1]);
                 }
                 copy_fork[i] = pid;
@@ -128,12 +127,12 @@ void execute_pipeline(pipeline apipe){
             }
         }
         if (pipe_wait){
-            for (unsigned int i = 0u; i < 2; ++i){
+            for (unsigned int i = 0u; i < len_pipeline; ++i){
                 waitpid(copy_fork[i], NULL, 0);
             }
         }
         free(copy_fork);
-        for (unsigned int i = 0u; i < 1; ++i){
+        for (unsigned int i = 0u; i < len_pipeline - 1; ++i){
             free(vec_pipe[i]);
             vec_pipe[i] = NULL;
         }
